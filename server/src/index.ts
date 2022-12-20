@@ -4,7 +4,7 @@ import { connection, server as websocketServer } from 'websocket';
 import { Event, EventType } from './types/event';
 
 const port = 8000;
-// Spinning the http server and the websocket server.
+
 const httpServer = createServer();
 httpServer.listen(port);
 console.log(`listening on port ${port}`);
@@ -12,6 +12,12 @@ console.log(`listening on port ${port}`);
 const wsServer = new websocketServer({ httpServer });
 const clients: Record<string, connection> = {};
 const users: Record<string, string> = {};
+
+const sendMessage = (json: string) => {
+    Object.keys(clients).map((client) => {
+        clients[client].sendUTF(json);
+    });
+}
 
 wsServer.on('request', function (request) {
     const uid = uuidv4();
@@ -24,6 +30,7 @@ wsServer.on('request', function (request) {
         console.log("Connection closed " + uid);
         delete clients[uid];
         delete users[uid];
+        sendMessage(JSON.stringify(users));
     });
 
     connection.on('message', function (message) {
@@ -45,6 +52,7 @@ wsServer.on('request', function (request) {
                 default:
                     break;
             }
+            sendMessage(JSON.stringify(users));
         }
     })
 });

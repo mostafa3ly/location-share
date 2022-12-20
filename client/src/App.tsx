@@ -1,20 +1,24 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { w3cwebsocket } from "websocket";
-import "./App.css";
 import { Event, EventType } from "./types/event";
+import "./App.css";
 
 const client = new w3cwebsocket("ws://127.0.0.1:8000");
 
 function App() {
   const [username, setUsername] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [users, setUsers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     client.onopen = () => {
       console.log("WebSocket Client Connected");
     };
     client.onmessage = (message) => {
-      console.log(message);
+      const data = message.data;
+      if (typeof data === "string") {
+        setUsers(JSON.parse(data));
+      }
     };
     client.onclose = () => {
       console.log("closed");
@@ -56,6 +60,13 @@ function App() {
       ) : (
         <div>
           <button onClick={handleLogout}>Disconnect</button>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {Object.entries(users).map(([id, username]) => (
+              <li key={id}>
+                <p>{username}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
