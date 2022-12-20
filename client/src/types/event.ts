@@ -6,4 +6,5 @@ export type Event = {
 export enum EventType {
     login,
     logout,
+    location
 }
